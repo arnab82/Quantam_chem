@@ -65,7 +65,7 @@ println("the nuclear nuclear repulsion term is ",constant,"\n")
 println("the overlap integral is",S)
    
 s=(S+transpose(S))/2
-nbasis=7
+h,nbasis=size(s)
 q,L=LinearAlgebra.eigen(s)
 println("the value of q is",q,"\n")
 println("the value of L is",L,"\n")
