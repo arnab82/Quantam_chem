@@ -18,7 +18,8 @@ mol.unit = "Bohr"
 mol.spin=0
 mol.build(
 	atom= atoms,
-	basis = "sto3g")
+	#basis = "sto3g"
+	basis = "cc-pVDZ")
 #println(mol.atom)
 #h1e = mol.intor("int1e_kin") + mol.intor("int1e_nuc")
 #S = mol.intor("int1e_ovlp")
