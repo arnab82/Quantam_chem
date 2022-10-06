@@ -142,7 +142,8 @@ print(fock)
 
 energy=0.0
 for n in range(100):
-	eps,c_dash=np.linalg.eigh(fock)
+	f_dash = np.einsum("ij,jk,kl->il", s_half, fock , s_half.T)
+	eps,c_dash=np.linalg.eigh(f_dash)
 	c=np.matmul(np.conj(s_half),c_dash)
 	#print(c)
 	D=np.zeros((nbasis,nbasis))
