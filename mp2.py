@@ -1,228 +1,138 @@
 import numpy as np 
+import time
+start=time.time()
+from pyscf import gto 
+"""import sys
+inFile = sys.argv[1]
+with open(inFile,'r') as i:
+	content = i.readlines()
+input_file =[]
+for line in content:
+	v_line=line.strip()
+	if len(v_line)>0:
+		input_file.append(v_line.split())
 
+Level_of_theory = input_file[0][0]
+basis_set = input_file[0][1]
+unit = input_file[0][2]
+charge, multiplicity = input_file[1]
+for i in range(2):
+	input_file.pop(0)
+geom_file = input_file
+Atoms = []
+for i in range(len(geom_file)):
+	Atoms.append(geom_file[i][0])
+#print(Atoms)
+geom_raw = geom_file
+for i in range(len(geom_file)):
+	geom_raw[i].pop(0)
 
-def read_enuc():
-	with open('enuc.dat','r') as f:
-		file_content=f.readlines()
-		enuc=file_content[0].split()
-		enuc=enuc[0]
-	return float(enuc) 
-
-#overlap matrix
-def read_overlap():
-	with open('s.dat','r') as f:
-		file_content=f.readlines()
-		nbasis=file_content[-1].split()
-		nbasis=int(nbasis[0])
-		s=np.zeros((nbasis,nbasis))
-		for line in file_content:
-			line=line.split()
-			i=int(line[0])-1
-			j=int(line[1])-1
-			s[i,j]=float(line[2])
-			s[j,i]=float(line[2])
-	return s 
-#kinetic energy
-def read_kinetic():
-	with open('t.dat','r') as f:
-		file_content=f.readlines()
-		nbasis=file_content[-1].split()
-		nbasis=int(nbasis[0])
-		t=np.zeros((nbasis,nbasis))
-		for line in file_content:
-			line=line.split()
-			i=int(line[0])-1
-			j=int(line[1])-1
-			t[i,j]=float(line[2])
-			t[j,i]=float(line[2])
-	return t 
-#potential energy
-def read_potential():
-	with open('v.dat','r') as f:
-		file_content=f.readlines()
-		nbasis=file_content[-1].split()
-		nbasis=int(nbasis[0])
-		v=np.zeros((nbasis,nbasis))
-		for line in file_content:
-			line=line.split()
-			i=int(line[0])-1
-			j=int(line[1])-1
-			v[i,j]=float(line[2])
-			v[j,i]=float(line[2])
-	return v
-'''def compound_index(i,j,k,l):         # a function which will give unique code for each set of atomic orbitals
-    if i >=j: ij = i*(i+1)/2 + j
-    else: ij = j*(j+1)/2 +i
-    if k >=l: kl = k*(k+1)/2 + l
-    else: kl = l*(l+1)/2 + k
-    if ij >= kl: ijkl = ij*(ij+1)/2 + kl
-    else: ijkl = kl*(kl+1)/2 + ij
-    return ijkl'''
-#two e integral
-def read_2e():
-	with open('eri.dat','r') as f:
-		file_content=f.readlines()
-		nbasis=file_content[-1].split()
-		nbasis=int(nbasis[0])
-		twoe=np.zeros((nbasis,nbasis,nbasis,nbasis))
-		for line in file_content:
-			line=line.split()
-			i=int(line[0])-1
-			j=int(line[1])-1
-			k=int(line[2])-1
-			l=int(line[3])-1
-			twoe[i,j,k,l]=float(line[4])
-			twoe[i,j,l,k]=float(line[4])
-			twoe[j,i,k,l]=float(line[4])
-			twoe[j,i,l,k]=float(line[4])
-			twoe[k,l,i,j]=float(line[4])
-			twoe[l,k,i,j]=float(line[4])
-			twoe[k,l,j,i]=float(line[4])
-			twoe[l,k,j,i]=float(line[4])
-			print(i, j, k, l,'\n')
-	return twoe
-
-'''def read_2e():
-	with open('eri.dat','r') as f:
-		file_content=f.readlines()
-		nbasis=file_content[-1].split()
-		nbasis=int(nbasis[0])
-		twoe=np.zeros((nbasis,nbasis,nbasis,nbasis))
-		unique_code = []
-		value=[]
-		for line in file_content:
-			line=line.split()
-			i=int(line[0])-1
-			j=int(line[1])-1
-			k=int(line[2])-1
-			l=int(line[3])-1
-			ijkl=compound_index(i,j,k,l)
-        	unique_code.append(ijkl)
-        	value.append(float(line[4]))
-
-	for i in range(nbasis):       # to generate all the two electron integrals ( with both zero and non zero values)
-  		for j in range(nbasis):
-    		for k in range(nbasis):
-      			for l in range(nbasis):
-           			ijkl=compound_index(i+1,j+1,k+1,l+1) # function is recalled corresponding to this set of atomic orbitals
-           			if ijkl in unique_code:    # condition to check whether this unique number matches with the number in list
-               			twoe=unique_code.index(ijkl) 
-    return twoe '''         		
-enuc=read_enuc()
-twoe=read_2e()
-t=read_kinetic()
-s=read_overlap()
-v=read_potential()
-#print(twoe)
-#print(s)
-core_h=t+v 
-#fock matrix
-q,L=np.linalg.eigh(s)
-q_half=np.power(q,-0.5)
-q_half=np.diag(q_half)
-s_half=np.matmul(L,q_half)
-s_half=np.matmul(s_half,L.T)
-nbasis=s.shape[0]
-print(nbasis)
-'''P=np.zeros(nbasis**2) #Density matrix
-P.shape=(nbasis,nbasis) #P is nbasis x nbasis
-fock=np.zeros((nbasis,nbasis))
-for i in range(nbasis):
-	for j in range(nbasis):
-		for k  in range(nbasis):
-			for l in range(nbasis):
-				fock[i,j]+=P[k,l]*((2*twoe[i,j,k,l])-twoe[i,l,k,j])
-fock=fock+core_h'''
-
-
-fock=np.matmul(s_half.T,core_h)
-fock=np.matmul(fock,s_half)
-print(fock)
-#density matrix and energy
-
-energy=0.0
-for n in range(100):
-	f_dash = np.einsum("ij,jk,kl->il", s_half, fock , s_half.T)
-	eps,c_dash=np.linalg.eigh(f_dash)
-	c=np.matmul(np.conj(s_half),c_dash)
-	#print(c)
-	D=np.zeros((nbasis,nbasis))
-	n_elec=10
-	no=int(n_elec/2)
+geom = ''
+atomline = ''
+for i in range(len(geom_raw)):
+	atomline += Atoms[i]+" "
+	for j in range(len(geom_raw[i])):
+		if j!=(len(geom_raw[i])-1):
+			atomline += geom_raw[i][j]+" "
+		else:
+			atomline += geom_raw[i][j]
+		
+	if (i == len(geom_raw)-1):
+		geom += atomline +""
+	else:
+		geom += atomline +";"
+	atomline = ''
+print(geom)
+print(basis_set)"""
+def make_density(C,no):
+	nbasis = C.shape[0]
+	D = np.zeros_like(C)
 	for i in range(nbasis):
 		for j in range(nbasis):
 			for m in range(no):
-				D[i,j]+=c[i,m]*c[j,m]
-	#print(D)
+				D[i,j]+=C[i,m]*C[j,m]
+	return D
+def make_fock(D,H,twoe):
+	nbasis = D.shape[0]
+	fock=np.zeros((nbasis,nbasis))
+	for i in range(nbasis):
+			for j in range(nbasis):
+				for k  in range(nbasis):
+					for l in range(nbasis):
+						fock[i,j]+=D[k,l]* (2.0*twoe[i,j,k,l]-twoe[i,k,j,l])
+	return fock+H
+def scf_energy(D,fock,core_h):
+	nbasis = D.shape[0]
 	new_energy=0.0 
 	for i in range(nbasis):
 		for j in range(nbasis):
 			new_energy+=D[i,j]*(fock[i,j]+core_h[i,j])
+	return new_energy
 
-	del_e=new_energy-energy
-	energy=new_energy
+#print(len(basis_set))
+mol = gto.Mole(spin = 0,charge=0)
+#mol.atom = geom
+mol.atom = "O 0.000000000000 -0.143225816552 0.000000000000;H 1.638036840407 1.136548822547 -0.000000000000;H -1.638036840407 1.136548822547 -0.000000000000"
+mol.unit = "Bohr"
+mol.basis = "sto3g"
+#mol.basis = "cc-pVDZ"
+mol.build()
+
+enuc  = mol.energy_nuc()
+s = np.array(mol.intor("int1e_ovlp"))
+t = mol.intor("int1e_kin")
+v = mol.intor("int1e_nuc")
+twoe = mol.intor("int2e")
+nbasis = s.shape[0]
+n_elec = 10
+no = int(n_elec/2)
+core_h=t+v 
+#fock matrix
+q,L=np.linalg.eigh(s)
+q_half = np.zeros_like(s)
+for i in range(nbasis):
+	q_half[i,i] = q[i]**-0.5
+temp = np.matmul(L , q_half)
+s_half = np.matmul(temp , L.transpose())
+init_f = np.einsum("ij,jk,kl->il", s_half, core_h , s_half.T)
+e,C0 = np.linalg.eigh(init_f)
+C = np.matmul(s_half,C0)
+D = np.zeros_like(C)
+for i in range(no):
+	D[i,i]=1.0
+energy=0.0
+for n in range(100):
+	fock = make_fock(D,core_h,twoe)
+	f_dash = np.einsum("ij,jk,kl->il", s_half, fock , s_half.T)
+	eps,c_dash=np.linalg.eigh(f_dash)
+	C=np.matmul(s_half,c_dash)
+	D = make_density(C,no)
+	hf_energy = scf_energy(D,fock,core_h)
+	del_e = hf_energy - energy
+	energy=hf_energy
 	if np.abs(del_e)<=1e-12:
 		break
-	print("iteration=",n,"energy= ", new_energy+enuc," delta_e= ",np.around(del_e,decimals=12))
-#Compute the New Fock Matrix
-	new_fock=np.zeros((nbasis,nbasis))
-	for i in range(nbasis):
-			for j in range(nbasis):
-				new_fock[i,j]=core_h[i,j]
-				for k  in range(nbasis):
-					for l in range(nbasis):
-						new_fock[i,j]+=D[k,l]*((2*twoe[i,j,k,l])-twoe[i,l,k,j])
-	fock=new_fock
-	#print(fock)
-
-#transforming two electron integrals-A0 to MO :The Noddy Algorithm
-'''newtwoe=np.zeros_like(twoe)
-newtwoe.shape=(nbasis,nbasis,nbasis,nbasis)
-for p in range(nbasis):
-    for q in range(nbasis):
-        for r in range(nbasis):
-            for s in range(nbasis):
-                val=0.0
-                for i in range(len(c)):
-                    cip=c[i][p]
-                    for j in range(len(c)):
-                        cjq=c[j][q]
-                        for k in range(len(c)):
-                            ckr=c[k][r]
-                            for l in range(len(c)):
-                                cls=c[l][s]
-                                #newjk[p][q][r][s]+=C[i][p]*C[j][q]* \
-                                # jk[i][j][k][l]*C[k][r]*C[l][s]
-                                val+=cip*cjq*
-                                 twoe[i][j][k][l]*ckr*cls
-                newtwoe[p][q][r][s]+=val'''
-#the smarter algorithm
+	print("iteration=",n,"energy= ",energy+enuc," delta_e= ",np.around(del_e,decimals=12))
+c = C
+#print(c)
 newtwoe=np.zeros_like(twoe)
 newtwoe.shape=(nbasis,nbasis,nbasis,nbasis)
 temp1=np.einsum("ip,ijkl->pjkl", c, twoe)
 temp2=np.einsum("jq,pjkl->pqkl", c, temp1)
 temp3=np.einsum("kr,pqkl->pqrl", c, temp2)
 newtwoe=np.einsum("ls,pqrl->pqrs", c, temp3)
-
-
-
-# Compute mp2 energy
-E_i,X_i=np.linalg.eigh(fock)
-#print(E_i)
-E=np.array(E_i)
-#print(E)
+#print("the value of newtwoe is",newtwoe)
+#print("the value of twoe is",twoe)
+E=np.array(eps)
 emp2=0.0
 ndocc=5
+print(len(c))
 for i in range(ndocc):
     for a in range(ndocc,nbasis):
         for j in range(ndocc):
             for b in range(ndocc,nbasis):
-                emp2+=newtwoe[i][a][j][b]*(2*newtwoe[i][a][j][b]-newtwoe[i][b][j][a])\
-                   / (E[i]+E[j]-E[a]-E[b])
-
+                emp2+=newtwoe[i][a][j][b]*(2*newtwoe[i][a][j][b]-newtwoe[i][b][j][a])/(E[i]+E[j]-E[a]-E[b])
 print("MP2 correlation E = ",emp2) 
-print("----------------------------------------------") 
-print("\tMP2 Total Energy:\t",emp2+enuc+new_energy) 
-print ("----------------------------------------------") 
-fock=new_fock
-
+end=time.time()
+print(f"the runtime of the program is {end-start}")
+#print("the value of coefficient matrix is ",c)
