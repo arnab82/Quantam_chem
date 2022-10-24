@@ -6,7 +6,7 @@ from pyscf import gto
 mol = gto.Mole(spin =1,charge=0)
 #mol.atom = "O 0.000000000000 -0.143225816552 0.000000000000;H 1.638036840407 1.136548822547 -0.000000000000;H -1.638036840407 1.136548822547 -0.000000000000"
 mol.atom="N -0.000000 0.000000 0.141610;H  0.000000 0.806598 -0.495633;H -0.000000 -0.806598 -0.495633"
-mol.unit = "Bohr"
+#mol.unit = "Bohr"
 mol.basis = "sto3g"
 #mol.basis = "aug-cc-pVDZ"
 #mol.basis = "cc-pVDZ"
