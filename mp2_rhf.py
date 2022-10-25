@@ -136,3 +136,49 @@ print("MP2 correlation E = ",emp2)
 end=time.time()
 print(f"the runtime of the program is {end-start}")
 #print("the value of coefficient matrix is ",c)
+def mo_to_aso(newtwoe):
+    nbasis=int(len(newtwoe))
+    ASObasis=np.zeros([2*nbasis,2*nbasis,2*nbasis,2*nbasis])
+    for i in range(2*nbasis):
+        for j in range(2*nbasis):
+            for k in range(2*nbasis):
+                for l in range(2*nbasis):
+                    ASObasis[i][j][k][l]=(newtwoe[i//2][k//2][j//2][l//2])*(i%2==k%2)*(j%2==l%2)-(newtwoe[i//2][l//2][j//2][k//2])*(i%2==l%2)*(j%2==k%2)
+    return ASObasis
+ASObasis=mo_to_aso(newtwoe)
+#print(np.shape(ASObasis))
+#print("THE VALUE OF ASOBASIS IS",ASObasis)
+def mo_to_cso(newtwoe):
+    nbasis=int(len(newtwoe))
+    CSObasis=np.zeros([2*nbasis,2*nbasis,2*nbasis,2*nbasis])
+    for i in range(2*nbasis):
+        for j in range(2*nbasis):
+            for k in range(2*nbasis):
+                for l in range(2*nbasis):
+                    CSObasis[i][j][k][l]=(newtwoe[i//2][k//2][j//2][l//2])*(i%2==k%2)*(j%2==l%2)
+    return CSObasis
+Csobasis=mo_to_cso(newtwoe)
+def Mat2_aotoMat2_mo(C,twoe):
+    nbasis=int(len(twoe))
+    temp1=np.zeros([nbasis,nbasis])
+    Mat2_mo=np.zeros([nbasis,nbasis])
+    temp1=np.einsum("ip,ij->pj", C, twoe)
+    Mat2_mo=np.einsum("jq,pj->pq", C, temp1)
+    return Mat2_mo
+def Mat2_motoMat2_so(Mat2_mo):
+    nbasis=int(len(Mat2_mo))
+    Mat2_so=np.zeros([2*nbasis,2*nbasis])
+    for i in range(2*nbasis):
+        #for j in range(2*nbasis):
+            Mat2_so[i][i]=Mat2_mo[i//2][i//2]
+    return Mat2_so
+#print(Mat2_aotoMat2_mo(c,fock))
+#print("size of the matrix is",np.shape(Mat2_aotoMat2_mo(c,fock)))
+F_so=np.zeros([2*nbasis,2*nbasis])
+F_mo=Mat2_aotoMat2_mo(c,fock)
+F_so=Mat2_motoMat2_so(Mat2_aotoMat2_mo(c,fock))
+def cind_r1r2(p,q,r1,r2,nofe):
+    #   arg: running indices p,q and r1, r2 are whether oo or ov or vo or vv.
+    #   returns compound index according to the comnvenience.
+    return (r2*(p-nofe*(p>=nofe)))+q-nofe*(q>=nofe)
+
