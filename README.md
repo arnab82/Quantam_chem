@@ -1,2 +1,2 @@
 # basic
-Hartree-Fock , MP2 and CC ,CIS code 
+Hartree-Fock , MP2 and CCSD code.
