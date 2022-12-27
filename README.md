@@ -1,2 +1,2 @@
 # basic
-Hartree-Fock , MP2 and CCSD code.
+Hartree-Fock , MP2 and CCSD and CCSD(T) code.
